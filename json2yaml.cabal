@@ -1,13 +1,11 @@
 name:            json2yaml
-version:         0.0.0
+version:         0.2.0
 license:         BSD3
 license-file:    LICENSE
 author:          Michael Snoyman <michael@snoyman.com>
 maintainer:      Michael Snoyman <michael@snoyman.com>
 synopsis:        Utility to convert a file from JSON to YAML format.
-description:     HsSyck cannot parse JSON files produced by the json
-                 package. This is a simple utility to connect the two
-                 libraries.
+description:     Uses the yaml package, which is built off of libyaml.
 category:        Web
 stability:       stable
 cabal-version:   >= 1.2
