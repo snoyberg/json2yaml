@@ -1,22 +1,32 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 import System.Environment (getArgs)
-import Text.Yaml hiding (decode)
-import Text.JSON hiding (encode)
-import qualified System.IO.UTF8 as U
+import Text.Yaml
+import Data.Object.JSON
+import Data.Object.Yaml
 import Control.Monad
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Char8 as B8
+import Data.Convertible.Text
+import Data.Attempt
 
-instance ToObject JSValue where
-    toObject JSNull = toObject ""
-    toObject (JSBool True) = toObject "true"
-    toObject (JSBool False) = toObject "false"
-    toObject (JSString s) = toObject $ fromJSString s
-    toObject (JSArray vals) = toObject vals
-    toObject (JSObject o) = toObject $ fromJSObject o
-    toObject (JSRational b r) = toObject $ showJSRational' b r $ ""
+showRational :: Rational -> B.ByteString
+showRational = convertSuccess . show . (fromRational :: Rational -> Double)
 
-toMonad :: Monad m => Result t -> m t
-toMonad (Ok a) = return a
-toMonad (Error s) = fail s
+instance ConvertSuccess JsonScalar Yaml where
+    convertSuccess (JsonString bs) = Yaml bs StrTag Any
+    convertSuccess (JsonNumber n) = Yaml (showRational n) FloatTag Any
+    convertSuccess (JsonBoolean True)  = Yaml (B8.pack "y") BoolTag Any
+    convertSuccess (JsonBoolean False) = Yaml (B8.pack "n") BoolTag Any
+    convertSuccess JsonNull = Yaml (B8.pack "~") NullTag Any
+instance ConvertSuccess B8.ByteString Yaml where
+    convertSuccess bs = Yaml bs StrTag Any
+
+instance ToObject (Object B8.ByteString JsonScalar) Yaml Yaml where
+    toObject = mapKeysValues convertSuccess convertSuccess
+instance FromObject (Object Yaml Yaml) B8.ByteString JsonScalar where
+    fromObject = return . toObject
 
 main :: IO ()
 main = do
@@ -25,10 +35,9 @@ main = do
     let (input:output:_) = args ++ repeat "-"
     content <-
         case input of
-            "-" -> U.getContents
-            _ -> U.readFile input
-    json <- toMonad $ decode content
-    let obj = toObject (json :: JSValue)
+            "-" -> BL.getContents
+            _ -> BL.readFile input
+    yo <- fa $ decode content
     case output of
-        "-" -> B.putStr $ encode obj
-        _ -> encodeFile output obj
+        "-" -> B.putStr $ encodeYaml' (yo :: YamlObject)
+        _ -> B.writeFile output $ encodeYaml' yo
