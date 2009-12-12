@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 import System.Environment (getArgs)
 import Text.Yaml
-import Data.Object.JSON
+import Data.Object.Json
 import Data.Object.Yaml
 import Control.Monad
 import qualified Data.ByteString as B
@@ -14,19 +14,18 @@ import Data.Attempt
 showRational :: Rational -> B.ByteString
 showRational = convertSuccess . show . (fromRational :: Rational -> Double)
 
-instance ConvertSuccess JsonScalar Yaml where
-    convertSuccess (JsonString bs) = Yaml bs StrTag Any
-    convertSuccess (JsonNumber n) = Yaml (showRational n) FloatTag Any
-    convertSuccess (JsonBoolean True)  = Yaml (B8.pack "y") BoolTag Any
-    convertSuccess (JsonBoolean False) = Yaml (B8.pack "n") BoolTag Any
-    convertSuccess JsonNull = Yaml (B8.pack "~") NullTag Any
-instance ConvertSuccess B8.ByteString Yaml where
-    convertSuccess bs = Yaml bs StrTag Any
-
-instance ToObject (Object B8.ByteString JsonScalar) Yaml Yaml where
-    toObject = mapKeysValues convertSuccess convertSuccess
-instance FromObject (Object Yaml Yaml) B8.ByteString JsonScalar where
-    fromObject = return . toObject
+instance ConvertSuccess JsonScalar YamlScalar where
+    convertSuccess (JsonString bs) = YamlScalar bs StrTag Any
+    convertSuccess (JsonNumber n) = YamlScalar (showRational n) FloatTag Any
+    convertSuccess (JsonBoolean True)  = YamlScalar (B8.pack "y") BoolTag Any
+    convertSuccess (JsonBoolean False) = YamlScalar (B8.pack "n") BoolTag Any
+    convertSuccess JsonNull = YamlScalar (B8.pack "~") NullTag Any
+instance ConvertSuccess B8.ByteString YamlScalar where
+    convertSuccess bs = YamlScalar bs StrTag Any
+-- Why is the following required if it's in Data.Object.Dangerous?
+instance (ConvertAttempt kIn kOut, ConvertAttempt vIn vOut)
+    => FromObject (Object kOut vOut) kIn vIn where
+    fromObject = mapKeysValuesM convertAttempt convertAttempt
 
 main :: IO ()
 main = do
