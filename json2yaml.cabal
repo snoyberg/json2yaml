@@ -14,10 +14,9 @@ homepage:        http://github.com/snoyberg/json2yaml/tree/master
 
 executable           json2yaml
     build-depends:   base >= 4 && < 5,
-                     yaml >= 0.2.0 && < 0.3,
+                     data-object-yaml >= 0.0.0 && < 0.1,
                      data-object-json >= 0.0.0 && < 0.1,
                      bytestring >= 0.9.1.4 && < 0.10,
-                     convertible-text >= 0.0.0 && < 0.1,
                      attempt >= 0.2.0 && < 0.3
     ghc-options:     -Wall -fno-warn-orphans
     main-is:         json2yaml.hs
