@@ -1,5 +1,5 @@
 name:            json2yaml
-version:         0.3.2
+version:         0.3.2.1
 license:         BSD3
 license-file:    LICENSE
 author:          Michael Snoyman <michael@snoyman.com>
@@ -16,6 +16,6 @@ executable           json2yaml
     build-depends:   base             >= 4       && < 5
                  ,   aeson            >= 0.6     && < 0.7
                  ,   yaml             >= 0.7     && < 0.9
-                 ,   bytestring       >= 0.9.1.4 && < 0.10
+                 ,   bytestring       >= 0.9.1.4
     ghc-options:     -Wall
     main-is:         json2yaml.hs
